@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const mongoose =  require("mongoose");
 const path = require("path");
+const methodOverride = require("method-override");
+const ejsMate = require("ejs-mate");
 const  Listing = require ("./models/listing");
 
 const MONGO_URL = 'mongodb://127.0.0.1:27017/stayswift';
@@ -23,6 +25,19 @@ app.set("views", path.join(__dirname, "views"));
 // url
 app.use(express.urlencoded({extended:true}));
 
+//method
+app.use(methodOverride("_method"));
+
+//ejs mate
+app.engine('ejs', ejsMate);
+
+// public folder
+app.use(express.static(path.join(__dirname, "/public")));
+
+
+
+// --------------- ROUTES ---------------------------
+
 app.get("/", (req,res) => {
     res.send("Hii I am root");
 });
@@ -34,7 +49,7 @@ app.get("/listings", async (req, res) => {
       const allListings = await Listing.find({});
      //console.log(allListings);
 
-      res.render("listings/index", { allListings });
+      res.render("listings/index.ejs", { allListings });
 
     } catch (err) {
       console.error(err);
@@ -48,7 +63,7 @@ app.get("/listings", async (req, res) => {
 
 // a. New Route --> GET /listings/new
 app.get("/listings/new",(req,res)=>{
-    res.render("listings/new");
+    res.render("listings/new.ejs");
 });
 
 // b. Create Route --> POST /listings
@@ -77,12 +92,38 @@ app.get("/listings/:id", async(req,res)=> {
     let {id}= req.params;
     const listing = await Listing.findById(id);
 
-    res.render("listings/show", {listing});
+    res.render("listings/show.ejs", {listing});
 
 });
 
+// 4. UPDATE : Edit & Update Route
+
+// a. Edit Route --> GET /listings/:id/edit --> form render
+app.get("/listings/:id/edit", async(req,res)=> {
+    let {id} = req.params;
+    const listing = await Listing.findById(id);
+
+    res.render("listings/edit.ejs", { listing });
+
+});
+
+// b. Update Route --> PUT /listings/:id --> update data
+app.put("/listings/:id", async(req,res) => {
+    let{id}= req.params;
+
+    await Listing.findByIdAndUpdate(id, {...req.body.listing});
+    res.redirect(`/listings/${id}`);
+});
 
 
+// 5. DELETE ROUTE --> DELETE -> /listings/:id
+app.delete("/listings/:id", async(req,res) => {
+    let {id} = req.params;
+    let deletedListing = await Listing.findByIdAndDelete(id);
+    console.log(deletedListing);
+
+    res.redirect("/listings");
+})
 
 
 // sample test
