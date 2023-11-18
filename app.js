@@ -68,7 +68,7 @@ app.get("/listings/new",(req,res)=>{
 
 // b. Create Route --> POST /listings
 
-app.post("/listings", async(req,res)=> {
+app.post("/listings", async(req,res,next)=> {
 
     // normal method
     // let {title, description, image, price, location, country} = req.body;
@@ -80,11 +80,17 @@ app.post("/listings", async(req,res)=> {
     // new Listing(listing);
     // console.log(listing);
 
-    const newListing = new Listing (req.body.listing);
-    await newListing.save();
+    try {
+        const newListing = new Listing (req.body.listing);
+       await newListing.save();
 
-    res.redirect("/listings");
+       res.redirect("/listings");
 
+    } catch (err) {
+        next(err);
+    }
+
+    
 });
 
 // 2. SHOW Route  -> GET /listings/:id
@@ -128,6 +134,8 @@ app.delete("/listings/:id", async(req,res) => {
 
 // sample test
 /*
+
+
 app.get("/testListing", async(req,res)=> {
 
     let sampleListing  = new Listing ({
@@ -147,6 +155,13 @@ app.get("/testListing", async(req,res)=> {
 
 */
 
+// -------------- ERROR Middleware ------------
+app.use((err,req,res,next)=> {
+    res.send("Something went wrong");
+})
+
+
+// listener 
 app.listen(8080, ()=> {
     console.log("server is listening to port 8080" );
 });

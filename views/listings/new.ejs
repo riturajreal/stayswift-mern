@@ -1,60 +1,85 @@
 <% layout("/layouts/boilerplate") %>
-<body>
 
-    <div class="form-container">
-    <form method="POST" action="/listings">
-        
-        <div class="row py-5">
+    <body>
 
-        <div class="col-8 offset-2">
+        <div class="form-container">
 
-        <h3>Listing</h3>
+            <form method="POST" action="/listings"  novalidate class="needs-validation">
 
-        <div class="mb-3">
-            <label for="title" class="form-label">Title</label>
-            <input name="listing[title]" placeholder="enter title" type="text" class="form-control">
+                <div class="row py-5">
+
+                    <div class="col-8 offset-2">
+
+                        <h3>Listing</h3>
+
+                        <!-- title -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <input name="listing[title]" placeholder="enter title" type="text" class="form-control"
+                                required>
+                        <p class="valid-feedback">Title Looks Good</p>
+                        </div>
+
+                        <!-- description -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea name="listing[description]" placeholder="enter description" class="form-control"
+                                required></textarea>
+                                <p class="valid-feedback">Please Enter short description</p>
+                        </div>
+
+                        <!-- image -->
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Image Link</label>
+                            <input name="listing[image]" placeholder="enter image url/link" class="form-control" >
+                        </div>
+
+                        <!-- price and location -->
+                        <div class="row">
+
+                                <div class="mb-3 col-md-4">
+                                    <label for="price" class="form-label">Price</label>
+                                    <input name="listing[price]" placeholder="enter price" type="number"
+                                        class="form-control" required>
+                                    <!-- warning -->
+                                    <p class="invalid-feedback">Enter Valid value</p>
+                                </div>
+
+
+                                <div class="mb-3 col-md-8">
+                                    <label for="location" class="form-label">Location</label>
+                                    <input name="listing[location]" placeholder="enter location" type="text"
+                                        class="form-control" required>
+                                        <p class="invalid-feedback">Enter Valid Location</p>
+                                </div>
+
+                        </div>
+
+                        <!-- country -->
+                        <div class="mb-3">
+                                <label for="country" class="form-label">Country</label>
+                                <input name="listing[country]" placeholder="enter country" type="text"
+                                    class="form-control" required>
+                                    <p class="invalid-feedback">Enter Valid Country name</p>
+                        </div>
+
+
+
+                        <button class="primary-btn">Add</button>
+
+                        
+                    </div>
+                    <!-- col ends -->
+
+                </div>
+                <!-- row ends -->
+
+
+
+            </form>
+            <!-- form ends -->
+
         </div>
-        
-        <div class="mb-3">
-            <label for="description" class="form-label">Description</label>
-            <textarea name="listing[description]" placeholder="enter description" class="form-control"></textarea>
-        </div>
+        <!-- form container ends -->
 
-        <div class="mb-3">
-            <label for="image" class="form-label">Image Link</label>
-            <input name="listing[image]" placeholder="enter image url/link" class="form-control"> 
-        </div>
-        
-
-        <div class="row">
-        
-        <div class="mb-3 col-md-4">
-            <label for="price" class="form-label">Price</label>
-            <input name="listing[price]" placeholder="enter price" type="number" class="form-control" >
-        </div>
-
-
-        <div class="mb-3 col-md-8">
-            <label for="location" class="form-label">Location</label>
-            <input name="listing[location]" placeholder="enter location" type="text" class="form-control" >
-        </div>
-
-        </div>
-        
-        <div class="mb-3">
-            <label for="country" class="form-label">Country</label>
-            <input name="listing[country]" placeholder="enter country" type="text" class="form-control">
-        </div>
-
-
-
-        <button class="primary-btn">Add</button>
-
-
-    </form>
-
-    </div>
-
-</div>
-
-</body>
+    </body>
