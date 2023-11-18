@@ -52,7 +52,7 @@ app.get("/listings", wrapAsync ( async (req, res) => {
      //console.log(allListings);
 
       res.render("listings/index.ejs", { allListings });
-      
+
     })
   );
 
@@ -78,6 +78,10 @@ app.post("/listings", wrapAsync ( async(req,res,next)=> {
     // let listing = req.body.listing;
     // new Listing(listing);
     // console.log(listing);
+
+    if(!req.body.listing) {
+        throw new ExpressError(400, "Send Valid data for Listing")
+    }
 
     const newListing = new Listing (req.body.listing);
     await newListing.save();
@@ -113,6 +117,12 @@ app.get("/listings/:id/edit", wrapAsync ( async(req,res)=> {
 
 // b. Update Route --> PUT /listings/:id --> update data
 app.put("/listings/:id", wrapAsync( async(req,res) => {
+
+    if(!req.body.listing) {
+        throw new ExpressError(400, "Send Valid data for Listing")
+    }
+
+    
     let{id}= req.params;
 
     await Listing.findByIdAndUpdate(id, {...req.body.listing});
