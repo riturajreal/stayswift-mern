@@ -4,7 +4,9 @@ const mongoose =  require("mongoose");
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
-const  Listing = require ("./models/listing");
+const Listing = require ("./models/listing");
+const wrapAsync = require("./utils/wrapAsync");
+const ExpressError = require("./utils/ExpressError");
 
 const MONGO_URL = 'mongodb://127.0.0.1:27017/stayswift';
 
@@ -44,18 +46,15 @@ app.get("/", (req,res) => {
 
 // 1. INDEX ROUTE --> GET /listings
 
-app.get("/listings", async (req, res) => {
-    try {
+app.get("/listings", wrapAsync ( async (req, res) => {
+
       const allListings = await Listing.find({});
      //console.log(allListings);
 
       res.render("listings/index.ejs", { allListings });
-
-    } catch (err) {
-      console.error(err);
-      res.status(500).send("Internal Server Error");
-    }
-  });
+      
+    })
+  );
 
 
 
@@ -68,7 +67,7 @@ app.get("/listings/new",(req,res)=>{
 
 // b. Create Route --> POST /listings
 
-app.post("/listings", async(req,res,next)=> {
+app.post("/listings", wrapAsync ( async(req,res,next)=> {
 
     // normal method
     // let {title, description, image, price, location, country} = req.body;
@@ -80,55 +79,61 @@ app.post("/listings", async(req,res,next)=> {
     // new Listing(listing);
     // console.log(listing);
 
-    try {
-        const newListing = new Listing (req.body.listing);
-       await newListing.save();
+    const newListing = new Listing (req.body.listing);
+    await newListing.save();
 
-       res.redirect("/listings");
+    res.redirect("/listings");
 
-    } catch (err) {
-        next(err);
-    }
+    })
+);
 
-    
-});
+
 
 // 2. SHOW Route  -> GET /listings/:id
-app.get("/listings/:id", async(req,res)=> {
+app.get("/listings/:id", wrapAsync( async(req,res)=> {
     let {id}= req.params;
     const listing = await Listing.findById(id);
 
     res.render("listings/show.ejs", {listing});
 
-});
+  })
+);
 
 // 4. UPDATE : Edit & Update Route
 
 // a. Edit Route --> GET /listings/:id/edit --> form render
-app.get("/listings/:id/edit", async(req,res)=> {
+app.get("/listings/:id/edit", wrapAsync ( async(req,res)=> {
     let {id} = req.params;
     const listing = await Listing.findById(id);
 
     res.render("listings/edit.ejs", { listing });
 
-});
+    })
+);
 
 // b. Update Route --> PUT /listings/:id --> update data
-app.put("/listings/:id", async(req,res) => {
+app.put("/listings/:id", wrapAsync( async(req,res) => {
     let{id}= req.params;
 
     await Listing.findByIdAndUpdate(id, {...req.body.listing});
     res.redirect(`/listings/${id}`);
-});
+    })
+);
 
 
 // 5. DELETE ROUTE --> DELETE -> /listings/:id
-app.delete("/listings/:id", async(req,res) => {
+app.delete("/listings/:id", wrapAsync( async(req,res) => {
     let {id} = req.params;
     let deletedListing = await Listing.findByIdAndDelete(id);
     console.log(deletedListing);
 
-    res.redirect("/listings");
+    res.redirect("/listings"); 
+  })
+);
+
+// for other routes which we dont have
+app.all("*", (req,res,next)=> {
+    next(new ExpressError(404, "Page not found"));
 })
 
 
@@ -156,9 +161,12 @@ app.get("/testListing", async(req,res)=> {
 */
 
 // -------------- ERROR Middleware ------------
+
+// 
 app.use((err,req,res,next)=> {
-    res.send("Something went wrong");
-})
+    let {status=500,message="Something went wrong"} = err;
+    res.status(status).send(message);
+});
 
 
 // listener 
