@@ -122,7 +122,7 @@ app.put("/listings/:id", wrapAsync( async(req,res) => {
         throw new ExpressError(400, "Send Valid data for Listing")
     }
 
-    
+
     let{id}= req.params;
 
     await Listing.findByIdAndUpdate(id, {...req.body.listing});
@@ -175,7 +175,8 @@ app.get("/testListing", async(req,res)=> {
 // 
 app.use((err,req,res,next)=> {
     let {status=500,message="Something went wrong"} = err;
-    res.status(status).send(message);
+    // error ejs
+    res.status(status).render("listings/error.ejs", {err});
 });
 
 
