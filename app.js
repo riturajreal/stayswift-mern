@@ -1,88 +1,84 @@
 const express = require("express");
 const app = express();
-const mongoose =  require("mongoose");
+const mongoose = require("mongoose");
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
-const Listing = require ("./models/listing");
+const Listing = require("./models/listing");
 const wrapAsync = require("./utils/wrapAsync");
 const ExpressError = require("./utils/ExpressError");
-const {listingSchema} = require("./schema");
+const { listingSchema } = require("./schema");
 
-const MONGO_URL = 'mongodb://127.0.0.1:27017/stayswift';
+const MONGO_URL = "mongodb://127.0.0.1:27017/stayswift";
 
-main().then(()=> {
+main()
+  .then(() => {
     console.log("connected to db");
-}).catch(err=> console.log(err));
+  })
+  .catch((err) => console.log(err));
 
 async function main() {
-    await mongoose.connect(MONGO_URL);
-};
+  await mongoose.connect(MONGO_URL);
+}
 
 // middleware for validate listing n server side
 // -->  use this function as a parameter in async manipulation listing routes
-const validateListing = (req,rs,next) => {
-    let {error} = listingSchema.validate(req.body);
+const validateListing = (req, rs, next) => {
+  let { error } = listingSchema.validate(req.body);
 
-    if(error) {
-        let errMsg = error.details.map((el)=> el.message).join(",");
-        throw new ExpressError(400, errMsg);
-    }
-
-    else next();
-}
-
-
+  if (error) {
+    let errMsg = error.details.map((el) => el.message).join(",");
+    throw new ExpressError(400, errMsg);
+  } else next();
+};
 
 //ejs
-app.set("view engine","ejs");
+app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 // url
-app.use(express.urlencoded({extended:true}));
+app.use(express.urlencoded({ extended: true }));
 
 //method
 app.use(methodOverride("_method"));
 
 //ejs mate
-app.engine('ejs', ejsMate);
+app.engine("ejs", ejsMate);
 
 // public folder
 app.use(express.static(path.join(__dirname, "/public")));
 
-
-
 // --------------- ROUTES ---------------------------
 
-app.get("/", (req,res) => {
-    res.send("Hii I am root");
+app.get("/", (req, res) => {
+  res.send("Hii I am root");
 });
 
 // 1. INDEX ROUTE --> GET /listings
 
-app.get("/listings", wrapAsync ( async (req, res) => {
+app.get(
+  "/listings",
+  wrapAsync(async (req, res) => {
+    const allListings = await Listing.find({});
+    //console.log(allListings);
 
-      const allListings = await Listing.find({});
-     //console.log(allListings);
-
-      res.render("listings/index.ejs", { allListings });
-
-    })
-  );
-
-
+    res.render("listings/index.ejs", { allListings });
+  })
+);
 
 // 3. CREATE Route (New & Create)
 
 // a. New Route --> GET /listings/new
-app.get("/listings/new",(req,res)=>{
-    res.render("listings/new.ejs");
+app.get("/listings/new", (req, res) => {
+  res.render("listings/new.ejs");
 });
 
 // b. Create Route --> POST /listings
 
-app.post("/listings", validateListing, wrapAsync ( async(req,res,next)=> {
-
+app.post(
+  "/listings",
+  validateListing,
+  wrapAsync(async (req, res, next) => {
     // normal method
     // let {title, description, image, price, location, country} = req.body;
 
@@ -93,81 +89,81 @@ app.post("/listings", validateListing, wrapAsync ( async(req,res,next)=> {
     // new Listing(listing);
     // console.log(listing);
 
-//easy method but not dry
+    //easy method but not dry
     // if(!req.body.listing) {
     //     throw new ExpressError(400, "Send Valid data for Listing")
     // }
 
-//using npm p JOI -->  SERVER SIDE VALIDATION
-/*
+    //using npm p JOI -->  SERVER SIDE VALIDATION
+    /*
     let result = listingSchema.validate(req.body); // check listing object
     console.log(result);
 
 */
 
-    const newListing = new Listing (req.body.listing);
+    const newListing = new Listing(req.body.listing);
     await newListing.save();
 
     res.redirect("/listings");
-
-    })
+  })
 );
 
-
-
 // 2. SHOW Route  -> GET /listings/:id
-app.get("/listings/:id", wrapAsync( async(req,res)=> {
-    let {id}= req.params;
+app.get(
+  "/listings/:id",
+  wrapAsync(async (req, res) => {
+    let { id } = req.params;
     const listing = await Listing.findById(id);
 
-    res.render("listings/show.ejs", {listing});
-
+    res.render("listings/show.ejs", { listing });
   })
 );
 
 // 4. UPDATE : Edit & Update Route
 
 // a. Edit Route --> GET /listings/:id/edit --> form render
-app.get("/listings/:id/edit", validateListing, wrapAsync ( async(req,res)=> {
-    let {id} = req.params;
+app.get(
+  "/listings/:id/edit",
+  validateListing,
+  wrapAsync(async (req, res) => {
+    let { id } = req.params;
     const listing = await Listing.findById(id);
 
     res.render("listings/edit.ejs", { listing });
-
-    })
+  })
 );
 
 // b. Update Route --> PUT /listings/:id --> update data
-app.put("/listings/:id", wrapAsync( async(req,res) => {
-
-    if(!req.body.listing) {
-        throw new ExpressError(400, "Send Valid data for Listing")
+app.put(
+  "/listings/:id",
+  wrapAsync(async (req, res) => {
+    if (!req.body.listing) {
+      throw new ExpressError(400, "Send Valid data for Listing");
     }
 
+    let { id } = req.params;
 
-    let{id}= req.params;
-
-    await Listing.findByIdAndUpdate(id, {...req.body.listing});
+    await Listing.findByIdAndUpdate(id, { ...req.body.listing });
     res.redirect(`/listings/${id}`);
-    })
+  })
 );
 
-
 // 5. DELETE ROUTE --> DELETE -> /listings/:id
-app.delete("/listings/:id", wrapAsync( async(req,res) => {
-    let {id} = req.params;
+app.delete(
+  "/listings/:id",
+  wrapAsync(async (req, res) => {
+    let { id } = req.params;
     let deletedListing = await Listing.findByIdAndDelete(id);
     console.log(deletedListing);
 
-    res.redirect("/listings"); 
+    res.redirect("/listings");
   })
 );
 
 // for other routes which we dont have
-app.all("*", (req,res,next)=> {
-    next(new ExpressError(404, "Page not found"));
-})
-
+app.all("*", (req, res, next) => {
+  next(new ExpressError(404, "Page not found"));
+});
 
 // sample test
 /*
@@ -194,15 +190,14 @@ app.get("/testListing", async(req,res)=> {
 
 // -------------- ERROR Middleware ------------
 
-// 
-app.use((err,req,res,next)=> {
-    let {status=500,message="Something went wrong"} = err;
-    // error ejs
-    res.status(status).render("listings/error.ejs", {err});
+//
+app.use((err, req, res, next) => {
+  let { status = 500, message = "Something went wrong" } = err;
+  // error ejs
+  res.status(status).render("listings/error.ejs", { err });
 });
 
-
-// listener 
-app.listen(8080, ()=> {
-    console.log("server is listening to port 8080" );
+// listener
+app.listen(8080, () => {
+  console.log("server is listening to port 8080");
 });
