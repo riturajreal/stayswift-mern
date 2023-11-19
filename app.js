@@ -7,6 +7,7 @@ const ejsMate = require("ejs-mate");
 const Listing = require ("./models/listing");
 const wrapAsync = require("./utils/wrapAsync");
 const ExpressError = require("./utils/ExpressError");
+const {listingSchema} = require("./schema");
 
 const MONGO_URL = 'mongodb://127.0.0.1:27017/stayswift';
 
@@ -17,6 +18,19 @@ main().then(()=> {
 async function main() {
     await mongoose.connect(MONGO_URL);
 };
+
+// middleware for validate listing n server side
+// -->  use this function as a parameter in async manipulation listing routes
+const validateListing = (req,rs,next) => {
+    let {error} = listingSchema.validate(req.body);
+
+    if(error) {
+        let errMsg = error.details.map((el)=> el.message).join(",");
+        throw new ExpressError(400, errMsg);
+    }
+
+    else next();
+}
 
 
 
@@ -67,7 +81,7 @@ app.get("/listings/new",(req,res)=>{
 
 // b. Create Route --> POST /listings
 
-app.post("/listings", wrapAsync ( async(req,res,next)=> {
+app.post("/listings", validateListing, wrapAsync ( async(req,res,next)=> {
 
     // normal method
     // let {title, description, image, price, location, country} = req.body;
@@ -79,9 +93,17 @@ app.post("/listings", wrapAsync ( async(req,res,next)=> {
     // new Listing(listing);
     // console.log(listing);
 
-    if(!req.body.listing) {
-        throw new ExpressError(400, "Send Valid data for Listing")
-    }
+//easy method but not dry
+    // if(!req.body.listing) {
+    //     throw new ExpressError(400, "Send Valid data for Listing")
+    // }
+
+//using npm p JOI -->  SERVER SIDE VALIDATION
+/*
+    let result = listingSchema.validate(req.body); // check listing object
+    console.log(result);
+
+*/
 
     const newListing = new Listing (req.body.listing);
     await newListing.save();
@@ -106,7 +128,7 @@ app.get("/listings/:id", wrapAsync( async(req,res)=> {
 // 4. UPDATE : Edit & Update Route
 
 // a. Edit Route --> GET /listings/:id/edit --> form render
-app.get("/listings/:id/edit", wrapAsync ( async(req,res)=> {
+app.get("/listings/:id/edit", validateListing, wrapAsync ( async(req,res)=> {
     let {id} = req.params;
     const listing = await Listing.findById(id);
 
