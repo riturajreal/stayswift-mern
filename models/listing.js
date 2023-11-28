@@ -1,5 +1,6 @@
 const mongoose =  require("mongoose");
 const Schema = mongoose.Schema;
+const Review = require("./review");
  
 
 //Schema
@@ -21,7 +22,25 @@ const listingSchema = new Schema ({
     location:String,
     country:String,
 
+    reviews : [
+        {
+            type : Schema.Types.ObjectId,
+            ref : "Review"
+        }
+    ]
+
 });
+
+
+// jab listing delete ho to usse related saare reviews bhi delete ho jane chahiye
+// iske liye delete middleware ka use karnege agar review me koi iska review pda ho to 
+// delete ho jayega
+
+listingSchema.post("findOneAndDelete", async (listing) => {
+    if (listing){
+    await Review.deleteMany({reviews : { $in : listing.reviews}});
+    }
+})
 
 //model creation
 const Listing = mongoose.model("Listing", listingSchema);

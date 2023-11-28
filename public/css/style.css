@@ -64,7 +64,7 @@ a{
     margin-bottom: 20px;
 }
 
-.card{
+.listing-card{
     border: none !important;
     /* padding: 10px 10px;
     margin-bottom: 2rem;
@@ -129,9 +129,16 @@ a{
 }
 
 .show-card-details{
-    display: flex !important;
-    flex-direction: column !important;
-    gap: -15px !important;
+    max-width: 500px;
+    gap: 5px;
+}
+
+.show-card-details p{
+    color: #000000;
+}
+
+.show-card-price{
+    font-weight: 600 !important;
 }
 
 .title{

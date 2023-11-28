@@ -5,9 +5,11 @@ const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 const Listing = require("./models/listing");
+const Review = require("./models/review");
 const wrapAsync = require("./utils/wrapAsync");
 const ExpressError = require("./utils/ExpressError");
-const { listingSchema } = require("./schema");
+const { listingSchema, reviewSchema } = require("./schema");
+
 
 const MONGO_URL = "mongodb://127.0.0.1:27017/stayswift";
 
@@ -21,8 +23,13 @@ async function main() {
   await mongoose.connect(MONGO_URL);
 }
 
+
+// -------------- SERVER SIDE VALIDATION --------------------
+
 // middleware for validate listing n server side
 // -->  use this function as a parameter in async manipulation listing routes
+
+// LISTINGS
 const validateListing = (req, rs, next) => {
   let { error } = listingSchema.validate(req.body);
 
@@ -31,6 +38,21 @@ const validateListing = (req, rs, next) => {
     throw new ExpressError(400, errMsg);
   } else next();
 };
+
+// REVIEWS 
+const validateReview = (req,res,next)=> {
+  let {error } = reviewSchema.validate(req.body);
+
+  if (error) {
+    let errMsg = error.details.map((el) => el.message).join(",");
+    throw new ExpressError(400, errMsg);
+  } else next();
+
+
+};
+
+
+// -------------------------------------------------------
 
 //ejs
 app.set("view engine", "ejs");
@@ -113,7 +135,7 @@ app.get(
   "/listings/:id",
   wrapAsync(async (req, res) => {
     let { id } = req.params;
-    const listing = await Listing.findById(id);
+    const listing = await Listing.findById(id).populate("reviews");
 
     res.render("listings/show.ejs", { listing });
   })
@@ -122,10 +144,7 @@ app.get(
 // 4. UPDATE : Edit & Update Route
 
 // a. Edit Route --> GET /listings/:id/edit --> form render
-app.get(
-  "/listings/:id/edit",
-  validateListing,
-  wrapAsync(async (req, res) => {
+app.get( "/listings/:id/edit", wrapAsync(async (req, res) => {
     let { id } = req.params;
     const listing = await Listing.findById(id);
 
@@ -134,13 +153,8 @@ app.get(
 );
 
 // b. Update Route --> PUT /listings/:id --> update data
-app.put(
-  "/listings/:id",
-  wrapAsync(async (req, res) => {
-    if (!req.body.listing) {
-      throw new ExpressError(400, "Send Valid data for Listing");
-    }
-
+app.put( "/listings/:id", validateListing, wrapAsync(async (req, res) => {
+   
     let { id } = req.params;
 
     await Listing.findByIdAndUpdate(id, { ...req.body.listing });
@@ -159,6 +173,45 @@ app.delete(
     res.redirect("/listings");
   })
 );
+
+
+// Reviews Post Route --> /listings/:id/reviews
+
+app.post('/listings/:id/reviews', validateReview, wrapAsync(async (req,res)=> {
+   let listing = await Listing.findById(req.params.id);
+
+   let newReview = new Review(req.body.review);
+
+   listing.reviews.push(newReview);
+
+   await newReview.save();
+   await listing.save();
+
+  //  console.log("new Review Saved");
+
+  //  res.send("new Review Saved");
+  res.redirect(`/listings/${listing._id}`);
+
+   })
+
+);
+
+// Delete Reviews Route -->  /listings/:id/reviews/reviewID
+app.delete('/listings/:id/reviews/:reviewId', wrapAsync(async (req, res) => {
+  let { id, reviewId } = req.params;
+
+   // here we use $pull operator (remove) to delete only that reviews that
+  // matches with our reviewId from our Listings
+
+  // Remove the reviewId from the reviews array in the Listing
+  await Listing.findByIdAndUpdate(id, { $pull: { reviews: reviewId } });
+
+  // Delete the actual review
+  await Review.findByIdAndDelete(reviewId);
+
+  res.redirect(`/listings/${id}`);
+}));
+
 
 // for other routes which we dont have
 app.all("*", (req, res, next) => {
