@@ -11,8 +11,13 @@ const ExpressError = require("./utils/ExpressError");
 const session = require('express-session');
 // JOI Schema
 const { listingSchema, reviewSchema } = require("./schema");
-
+// Connect Flash
 const flash = require('connect-flash');
+// Passport
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const User = require("./models/user.js");
+
 
 // session options 
 const sessionOptions = {
@@ -29,6 +34,9 @@ const sessionOptions = {
   }
 } 
 
+
+// ------- THIRD PARTY MIDDLEWARES -----------------
+
 // Connect Flash
 app.use(flash());
 
@@ -42,7 +50,22 @@ app.use((req, res, next)=> {
   next();
 });
 
-// Routes
+// passport initialized
+app.use(passport.initialize());
+
+// passport session
+app.use(passport.session()); // track or identify user on every response or req
+
+// static authenticate method for local Strategy
+passport.use(new LocalStrategy (User.authenticate));
+
+// serialize(user related info store) and deserialize(remove user realed info)
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+
+
+// ------------------Routes---------------------
 const listings = require("./routes/listing.js");
 const reviews = require("./routes/review.js");
 
@@ -132,6 +155,8 @@ app.use((err, req, res, next) => {
   // error ejs
   res.status(status).render("listings/error.ejs", { err });
 });
+
+
 
 // listener
 app.listen(8080, () => {
