@@ -17,6 +17,14 @@ const sessionOptions = {
   secret : "mysecretstring",
   resave : false,
   saveUninitialized : true,
+
+  // adding cookie options : 
+  cookie : {
+    expires : Date.now() + 7*24*60*60*1000, // time in milliseconds --> 1 Week
+    maxAge : 7*24*60*60*1000,
+    httpOnly : true,
+
+  }
 }
 
 // express sesions
