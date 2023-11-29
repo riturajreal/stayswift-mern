@@ -18,6 +18,21 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const User = require("./models/user.js");
 
+// ------------DB Connection --------------------
+
+const MONGO_URL = "mongodb://127.0.0.1:27017/stayswift";
+
+main()
+  .then(() => {
+    console.log("connected to db");
+  })
+  .catch((err) => console.log(err));
+
+async function main() {
+  await mongoose.connect(MONGO_URL);
+}
+
+// -------------------------------------------------------
 
 // session options 
 const sessionOptions = {
@@ -66,25 +81,11 @@ passport.deserializeUser(User.deserializeUser());
 
 
 // ------------------Routes---------------------
-const listings = require("./routes/listing.js");
-const reviews = require("./routes/review.js");
+const listingRouter = require("./routes/listing.js");
+const reviewRouter = require("./routes/review.js");
+const userRouter = require("./routes/user.js");
 
 
-// ------------DB Connection --------------------
-
-const MONGO_URL = "mongodb://127.0.0.1:27017/stayswift";
-
-main()
-  .then(() => {
-    console.log("connected to db");
-  })
-  .catch((err) => console.log(err));
-
-async function main() {
-  await mongoose.connect(MONGO_URL);
-}
-
-// -------------------------------------------------------
 
 //ejs
 app.set("view engine", "ejs");
@@ -106,15 +107,35 @@ app.use(express.static(path.join(__dirname, "/public")));
 
 // --------------- ROUTES ---------------------------
 
+/*
+app.get('/demouser', async (req,res)=> {
+  let fakeUser = new User ({
+    email : "rit@gmail.com",
+    username : "riturajreal",
+
+  });
+
+  // passport static register method --> schema.register(userObj, Password);
+
+  let registeredUser = await User.register(fakeUser, "helloworld");
+  res.send(registeredUser);
+
+});
+*/
+
+
 app.get("/", (req, res) => {
   res.send("Hii I am root");
 });
 
 // listings routes
-app.use('/listings', listings);
+app.use('/listings', listingRouter);
 
 // review routes
-app.use("/listings/:id/reviews", reviews);
+app.use("/listings/:id/reviews", reviewRouter);
+
+// user routes
+app.use("/", userRouter);
 
 
 // for other routes which we dont have

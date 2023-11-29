@@ -5,13 +5,13 @@ const passportLocalMongoose = require("passport-local-mongoose"); // used as a p
 // in this we only define email because
 // passport local mongoose automatically
 // define username and password
-const userSchema = new Schema = ({
+const userSchema = new Schema ({
     email : {
         type : String,
         required : true, 
     }
 });
 
-User.plugin(passportLocalMongoose); // this we add some methods --> SEE API
+userSchema.plugin(passportLocalMongoose); // this we add some methods --> SEE API
 module.exports = mongoose.model("User", userSchema);
 
