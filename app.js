@@ -8,9 +8,19 @@ const Listing = require("./models/listing");
 const Review = require("./models/review");
 const wrapAsync = require("./utils/wrapAsync");
 const ExpressError = require("./utils/ExpressError");
-
+const session = require('express-session');
 // JOI Schema
 const { listingSchema, reviewSchema } = require("./schema");
+
+// session options 
+const sessionOptions = {
+  secret : "mysecretstring",
+  resave : false,
+  saveUninitialized : true,
+}
+
+// express sesions
+app.use(session(sessionOptions)); // check in application on browser
 
 // Routes
 const listings = require("./routes/listing.js");
