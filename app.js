@@ -12,6 +12,8 @@ const session = require('express-session');
 // JOI Schema
 const { listingSchema, reviewSchema } = require("./schema");
 
+const flash = require('connect-flash');
+
 // session options 
 const sessionOptions = {
   secret : "mysecretstring",
@@ -25,10 +27,19 @@ const sessionOptions = {
     httpOnly : true,
 
   }
-}
+} 
+
+// Connect Flash
+app.use(flash());
 
 // express sesions
 app.use(session(sessionOptions)); // check in application on browser
+
+// connect flash - res.locals middleware
+app.use((req, res, next)=> {
+  res.locals.success = req.flash("success");
+  next();
+});
 
 // Routes
 const listings = require("./routes/listing.js");

@@ -15,7 +15,10 @@
     <%- include("../includes/navbar.ejs") %>
 
     <!-- page connect according to routes -->
-    <div class="container"><%- body %></div>
+    <div class="container">
+        <!-- flash -->
+        <%- include("../includes/flash.ejs") %>
+        <%- body %></div>
 
     <!-- footer -->
     <%- include("../includes/footer.ejs") %>
