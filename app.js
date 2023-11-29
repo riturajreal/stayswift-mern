@@ -38,6 +38,7 @@ app.use(session(sessionOptions)); // check in application on browser
 // connect flash - res.locals middleware
 app.use((req, res, next)=> {
   res.locals.success = req.flash("success");
+  res.locals.error = req.flash("error");
   next();
 });
 
