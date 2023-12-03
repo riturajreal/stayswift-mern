@@ -72,7 +72,7 @@ app.use(passport.initialize());
 app.use(passport.session()); // track or identify user on every response or req
 
 // static authenticate method for local Strategy
-passport.use(new LocalStrategy (User.authenticate));
+passport.use(new LocalStrategy (User.authenticate()));
 
 // serialize(user related info store) and deserialize(remove user realed info)
 passport.serializeUser(User.serializeUser());
