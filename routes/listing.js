@@ -37,6 +37,16 @@ router.get(
   
   // a. New Route --> GET /listings/new
   router.get("/new", (req, res) => {
+
+    // if user is not logged in then he will not be able to
+    // create listing --> req.isAuthenticate() -- middleware
+
+    console.log(req.user);
+    
+    if(!req.isAuthenticated()){
+        req.flash("error", "You must be logged in to create listing");
+        return res.redirect("/login");
+    }
     res.render("listings/new.ejs");
   });
   
