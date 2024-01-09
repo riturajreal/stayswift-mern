@@ -62,7 +62,7 @@ app.use(session(sessionOptions)); // check in application on browser
 app.use((req, res, next)=> {
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
-  res.locals.currentUser = req.user; // --> store the local user info
+  res.locals.currUser = req.user; // --> store the local user
   next();
 });
 

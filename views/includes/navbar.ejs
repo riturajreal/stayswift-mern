@@ -13,16 +13,23 @@
 
         <div class="navbar-nav ms-auto">
         
-            <% if (!currentUser) { %>
+            <% if (!currUser) { %>
               <a class="nav-link active" aria-current="page" href="/signup">Sign up</a>
               <a class="nav-link" href="/login">Login</a>
             <% } %>
 
-            <% if (currentUser) { %>
+            <% if (currUser) { %>
               <a class="nav-link" href="/logout">Logout</a>
             <% } %>
-        
-       
         </div>
+
+        <div>
+          <% if (currUser) { %>
+            <p>Welcome, <%= currUser.username %>!</p>
+          <% } else { %>
+            <p>Please log in or sign up.</p>
+          <% } %>
+        </div>
+
     </div>
   </nav> 
